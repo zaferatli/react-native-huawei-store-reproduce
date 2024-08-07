@@ -80,6 +80,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        missingDimensionStrategy "flavor", "google"
+        missingDimensionStrategy "mode", "tst"
     }
     signingConfigs {
         debug {
@@ -87,6 +89,50 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+        }
+        huawei {
+            storeFile file(HUAWEI_RELEASE_STORE_FILE)
+            storePassword HUAWEI_RELEASE_STORE_PASSWORD
+            keyAlias HUAWEI_RELEASE_KEY_ALIAS
+            keyPassword HUAWEI_RELEASE_KEY_PASSWORD
+            v1SigningEnabled true;
+            v2SigningEnabled true;
+        }
+    }
+
+     sourceSets {
+        prod {
+            java.srcDirs = ['src/google/com/reproducerapp/MapPackageChecker.java']
+        }
+        prodHuawei {
+            java.srcDirs = ['src/huawei/com/reproducerapp/MapPackageChecker.java']
+        }
+        tst {
+            java.srcDirs = ['src/google/com/reproducerapp/MapPackageChecker.java']
+        }
+        tstHuawei {
+            java.srcDirs = ['src/huawei/com/reproducerapp/MapPackageChecker.java']
+        }
+     }
+    flavorDimensions = ["mode"]
+
+        productFlavors {
+        prod {
+            dimension "mode"
+        }
+        prodHuawei {
+            initWith prod
+            signingConfig signingConfigs.huawei
+            dimension "mode"
+        }
+        tst {
+            signingConfig signingConfigs.debug
+            dimension "mode"
+        }
+        tstHuawei {
+            initWith tst
+            signingConfig signingConfigs.huawei
+            dimension "mode"
         }
     }
     buildTypes {
@@ -117,6 +163,19 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+
+    gradle.startParameter.getTaskNames().each { task ->
+        if(task.toString().contains("Huawei")) {
+            implementation 'com.huawei.hms:location:4.0.2.300'
+            implementation 'com.huawei.hms:hwid:4.0.1.300'
+            implementation project(':react-native-hms-map')
+            implementation 'com.huawei.agconnect:agconnect-core:1.9.1.301'
+            implementation 'com.huawei.hms:maps:4.0.1.302'
+
+        }else {
+            implementation project(':react-native-maps')
+        }
     }
 }
 
